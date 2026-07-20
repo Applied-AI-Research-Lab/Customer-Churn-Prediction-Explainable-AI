@@ -1,0 +1,82 @@
+{
+  "Age": {
+    "churned_mean": 35.788,
+    "retained_mean": 38.62
+  },
+  "Membership_Years": {
+    "churned_mean": 2.992,
+    "retained_mean": 2.972
+  },
+  "Login_Frequency": {
+    "churned_mean": 9.141,
+    "retained_mean": 12.639
+  },
+  "Session_Duration_Avg": {
+    "churned_mean": 23.733,
+    "retained_mean": 29.223
+  },
+  "Pages_Per_Session": {
+    "churned_mean": 7.371,
+    "retained_mean": 9.289
+  },
+  "Cart_Abandonment_Rate": {
+    "churned_mean": 64.174,
+    "retained_mean": 54.178
+  },
+  "Wishlist_Items": {
+    "churned_mean": 3.305,
+    "retained_mean": 4.68
+  },
+  "Total_Purchases": {
+    "churned_mean": 11.374,
+    "retained_mean": 13.823
+  },
+  "Average_Order_Value": {
+    "churned_mean": 135.729,
+    "retained_mean": 118.887
+  },
+  "Days_Since_Last_Purchase": {
+    "churned_mean": 36.9,
+    "retained_mean": 26.936
+  },
+  "Discount_Usage_Rate": {
+    "churned_mean": 39.294,
+    "retained_mean": 42.997
+  },
+  "Returns_Rate": {
+    "churned_mean": 7.196,
+    "retained_mean": 6.493
+  },
+  "Email_Open_Rate": {
+    "churned_mean": 15.924,
+    "retained_mean": 22.893
+  },
+  "Customer_Service_Calls": {
+    "churned_mean": 6.879,
+    "retained_mean": 5.19
+  },
+  "Product_Reviews_Written": {
+    "churned_mean": 2.204,
+    "retained_mean": 3.111
+  },
+  "Social_Media_Engagement_Score": {
+    "churned_mean": 23.259,
+    "retained_mean": 31.911
+  },
+  "Mobile_App_Usage": {
+    "churned_mean": 16.07,
+    "retained_mean": 20.72
+  },
+  "Payment_Method_Diversity": {
+    "churned_mean": 2.366,
+    "retained_mean": 2.349
+  },
+  "Lifetime_Value": {
+    "churned_mean": 1428.287,
+    "retained_mean": 1444.153
+  },
+  "Credit_Balance": {
+    "churned_mean": 1665.637,
+    "retained_mean": 2090.587
+  }
+}

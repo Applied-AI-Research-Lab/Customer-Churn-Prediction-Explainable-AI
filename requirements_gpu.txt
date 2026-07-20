@@ -1,0 +1,32 @@
+# GPU server requirements — install in a fresh venv on your GPU server
+# (2× NVIDIA H100, tcsh shell)
+#
+# Setup (one-time):
+#   python -m venv venv
+#   source venv/bin/activate
+#   pip install --upgrade pip
+#   pip install -r requirements_gpu.txt
+#
+# Run:
+#   python src/zero_shot_llm_predictions.py            # both models, full test set
+#   python src/zero_shot_llm_predictions.py --limit 10 # smoke test
+#   python src/zero_shot_llm_predictions.py --resume   # continue from checkpoint
+#   python src/zero_shot_llm_predictions.py --model qwen
+#   python src/zero_shot_llm_predictions.py --model gemma
+
+# ── Core LLM stack (Unsloth — same as old project) ──────────────────────────
+unsloth[cu124-torch260] @ https://github.com/unslothai/unsloth/archive/refs/heads/main.zip
+
+# Root-cause fix: unsloth-zoo 2026.7+ requires torchao>=0.13.0, which in turn
+# requires torch.utils._pytree.register_constant (added in PyTorch 2.5.0).
+# Ensure PyTorch >= 2.5.0 is installed for CUDA 12.4:
+#   pip install "torch>=2.5.0" --index-url https://download.pytorch.org/whl/cu124
+#
+# transformers must satisfy unsloth-zoo's constraint (>=4.51.3, <=5.5.0):
+transformers==5.5.0
+
+# ── ML / data ───────────────────────────────────────────────────────────────
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+tqdm>=4.66

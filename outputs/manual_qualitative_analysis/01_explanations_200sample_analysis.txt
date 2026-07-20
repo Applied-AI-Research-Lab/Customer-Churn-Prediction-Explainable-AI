@@ -1,0 +1,256 @@
+================================================================================
+  MANUAL QUALITATIVE ANALYSIS — 200 SAMPLES PER MODEL (EXPLANATIONS)
+  Source: outputs/llm_predictions/test_llm_predictions.csv
+  Sampling: df[df["qwen_explanation"].notna()].sample(200, random_state=42)
+            df[df["gemma_explanation"].notna()].sample(200, random_state=42)
+================================================================================
+
+1. STRUCTURAL PATTERNS
+--------------------------------------------------------------------------------
+
+  [QWEN] (n=200)
+    Avg sentences per explanation: 4.9
+    Top opening phrases:
+      'Both XGBoost and Random Forest models...' — 56 times (28%)
+      'Both XGBOOST and Random Forest models...' — 27 times (14%)
+      'Both models agree on churn with...' — 18 times (9%)
+      'Both models agree on CHURN with...' — 18 times (9%)
+      'Both models agree to retain the...' — 14 times (7%)
+    References 'both models': 195 (98%)
+    Uses 'unanimously': 103 (52%)
+    Uses 'agree/agreement': 70 (35%)
+    Cites numeric SHAP values: 19 (10%)
+    Cites probability percentages: 157 (78%)
+    References benchmarks/averages: 173 (86%)
+    Uses magnitude labels (dominant/strong/moderate): 8 (4%)
+    Uses hedging (however/although/despite/while): 161 (80%)
+    Cites specific numeric feature values: 187 (94%)
+    Top recommendation action verbs:
+      'offer': 164 (82%)
+      'target': 135 (68%)
+      'implement': 102 (51%)
+      'maintain': 56 (28%)
+      'focus': 54 (27%)
+      'immediately': 53 (26%)
+      'proactively': 36 (18%)
+      'initiate': 25 (12%)
+
+  [GEMMA] (n=200)
+    Avg sentences per explanation: 5.8
+    Top opening phrases:
+      'Both the XGBoost and Random Forest...' — 195 times (98%)
+      'Both models predict differing outcomes, but...' — 1 times (0%)
+      'Both models predict different outcomes, but...' — 1 times (0%)
+      'Both models disagree, but XGBoost's high...' — 1 times (0%)
+      'Both models disagree, but the XGBoost...' — 1 times (0%)
+    References 'both models': 200 (100%)
+    Uses 'unanimously': 0 (0%)
+    Uses 'agree/agreement': 3 (2%)
+    Cites numeric SHAP values: 3 (2%)
+    Cites probability percentages: 166 (83%)
+    References benchmarks/averages: 195 (98%)
+    Uses magnitude labels (dominant/strong/moderate): 10 (5%)
+    Uses hedging (however/although/despite/while): 147 (74%)
+    Cites specific numeric feature values: 200 (100%)
+    Top recommendation action verbs:
+      'offer': 198 (99%)
+      'proactively': 147 (74%)
+      'focus': 93 (46%)
+      'immediately': 61 (30%)
+      'target': 60 (30%)
+      'reach out': 48 (24%)
+      'continue': 44 (22%)
+      'investigate': 41 (20%)
+
+
+2. REASONING PATTERNS
+--------------------------------------------------------------------------------
+
+  [QWEN] (n=200)
+    Weighs competing signals (outweigh/offset/mitigate): 94 (47%)
+    Compares to population averages: 104 (52%)
+    Mentions model disagreement: 1 (0%)
+    Identifies dominant driver: 57 (28%)
+    Multi-factor reasoning (>=2 SHAP refs or complex): 111 (56%)
+    References risk tier: 53 (26%)
+
+  [GEMMA] (n=200)
+    Weighs competing signals (outweigh/offset/mitigate): 37 (18%)
+    Compares to population averages: 41 (20%)
+    Mentions model disagreement: 2 (1%)
+    Identifies dominant driver: 20 (10%)
+    Multi-factor reasoning (>=2 SHAP refs or complex): 191 (96%)
+    References risk tier: 10 (5%)
+
+
+3. CONTENT THEMES (feature citation frequency)
+--------------------------------------------------------------------------------
+
+  [QWEN]
+    age                      : 155 (78%)
+    customer service         :  85 (42%)
+    cart abandonment         : 102 (51%)
+    lifetime value           : 150 (75%)
+    days since                :  54 (27%)
+    discount                 :  42 (21%)
+    email open                :  24 (12%)
+    returns                  :  37 (18%)
+    login                    :  14 (7%)
+    purchase                 : 114 (57%)
+
+  [GEMMA]
+    age                      : 139 (70%)
+    customer service         : 190 (95%)
+    cart abandonment         : 108 (54%)
+    lifetime value           : 155 (78%)
+    days since                :  65 (32%)
+    discount                 :  41 (20%)
+    email open                :  56 (28%)
+    returns                  :  31 (16%)
+    login                    :  17 (8%)
+    session                  :   7 (4%)
+    mobile app                :  12 (6%)
+    purchase                 :  98 (49%)
+
+
+4. REPRESENTATIVE SAMPLES (5 per model)
+--------------------------------------------------------------------------------
+
+================================================================================
+  QWEN — 5 representative explanations
+================================================================================
+
+  [1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical
+      EXPLANATION: Both models independently predict churn with high confidence
+      (91.0% and 82.9%), driven primarily by the dominant SHAP signal of extreme
+      cart abandonment (90.10%) which far exceeds the average churner benchmark
+      of 64.174. Despite mitigating factors like low returns and moderate
+      lifetime value, the overwhelming behavioral evidence and model consensus
+      indicate this customer is at critical risk.
+      RECOMMENDATION: Immediately implement a targeted retention campaign
+      focusing on re-engaging the customer through personalized offers to
+      address the high cart abandonment, while simultaneously investigating
+      the root cause of the 7 customer service calls to resolve friction points.
+
+  [2] y_true=1 | decision=churn | prob=0.9482 | tier=Critical
+      EXPLANATION: Both models agree on churn with high confidence, driven by
+      the critical 86-day gap since last purchase (far exceeding the 26.936-day
+      retained benchmark) and 9 service calls (surpassing the 5.19 retained
+      average). Although long session duration offers a slight protective
+      signal, the overwhelming negative SHAP contributions from purchase
+      frequency and engagement metrics dictate a churn prediction.
+      RECOMMENDATION: Immediately deploy a high-value retention offer
+      targeting the 86-day inactivity gap while addressing the 9 service calls
+      to resolve friction points, as the risk tier is critical and behavioral
+      signals indicate low likelihood of recovery without intervention.
+
+  [3] y_true=0 | decision=retain | prob=0.0354 | tier=Low
+      EXPLANATION: Both models agree to retain the customer, with XGBoost
+      indicating a low 3.5% churn probability driven by strong SHAP signals
+      from low days since last purchase (-0.94) and high lifetime value
+      (-0.76), which significantly outperform the population benchmarks for
+      retained users. Despite the moderate churn risk associated with 6
+      customer service calls (+0.36), the overall behavioral profile and model
+      consensus strongly favor retention.
+      RECOMMENDATION: Implement a targeted retention campaign focusing on
+      re-engagement for the 10-day gap since last purchase, while addressing
+      the root causes of the 6 service calls to prevent future friction.
+      Leverage the high email open rate to deliver personalized offers that
+      reinforce the customer's high lifetime value status.
+
+  [4] y_true=0 | decision=retain | prob=0.0258 | tier=Low
+      EXPLANATION: Both XGBoost and Random Forest models unanimously predict
+      retention with low churn probabilities, driven by strong SHAP signals
+      indicating the customer's recent activity (3 days since last purchase)
+      and low return rate significantly reduce churn risk compared to
+      population benchmarks. The behavioral data confirms this, as the
+      customer has a healthy lifetime value and minimal service interactions,
+      distinguishing them from typical churners.
+      RECOMMENDATION: Maintain the current retention strategy by avoiding
+      aggressive discount offers that could inflate the already high cart
+      abandonment rate, and instead focus on personalized engagement to
+      capitalize on their high lifetime value and low churn risk profile.
+
+================================================================================
+  GEMMA — 5 representative explanations
+================================================================================
+
+  [1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical
+      EXPLANATION: Both the XGBoost and Random Forest models predict churn
+      with high confidence (91.0% and 82.9% respectively), aligning with
+      population benchmarks showing higher churn rates for customers with
+      similar cart abandonment and returns rates. The SHAP values highlight
+      key drivers of churn, particularly the high cart abandonment rate and
+      customer service calls, suggesting a significant risk of attrition.
+      RECOMMENDATION: Immediately initiate a proactive outreach program
+      focusing on addressing the high cart abandonment rate through targeted
+      offers and simplified checkout processes. Simultaneously, investigate
+      the reasons behind the 7 customer service calls to identify and resolve
+      underlying issues impacting this customer's experience.
+
+  [2] y_true=1 | decision=churn | prob=0.7611 | tier=High
+      EXPLANATION: Both the XGBoost and Random Forest models predict churn
+      with high probabilities (76.1% and 56.1% respectively), supported by
+      significant SHAP values indicating high Days since last purchase,
+      customer service calls, and low mobile app usage as key drivers. The
+      benchmark data further reinforces the concern around long days since
+      last purchase and a relatively high churn rate for similar customers,
+      suggesting this customer is at significant risk.
+      RECOMMENDATION: Immediately reach out to this customer with a
+      personalized offer (e.g., discount, exclusive content) and proactively
+      address any potential issues contributing to their inactivity and
+      recent customer service interactions. Focus on understanding their
+      needs and re-engaging them with relevant value propositions to prevent
+      churn.
+
+  [3] y_true=0 | decision=retain | prob=0.0354 | tier=Low
+      EXPLANATION: Both the XGBoost and Random Forest models predict
+      retention with high confidence (ROC-AUC 0.927 and 0.921 respectively),
+      and the churn probability is low for this customer (3.5% vs. 24.0%).
+      The SHAP values highlight that low Days since last purchase, high
+      Lifetime value, and high Email open rate are protective factors, while
+      a moderate increase in Customer service calls is a slight risk. The
+      benchmark data confirms that this customer's behavior is within the
+      range of retained customers.
+      RECOMMENDATION: Proactively reach out to this customer with a
+      personalized offer based on their past purchases and engagement,
+      focusing on highlighting new products or features. Simultaneously,
+      investigate the reasons behind the 6 customer service calls to identify
+      and address any underlying issues.
+
+  [4] y_true=0 | decision=retain | prob=0.0258 | tier=Low
+      EXPLANATION: Both the XGBoost and Random Forest models predict
+      retention with high confidence (ROC-AUC 0.927 and 0.921 respectively),
+      supported by low churn probabilities (2.6% and 12.6% respectively).
+      SHAP values highlight key factors like low days since last purchase,
+      returns rate, and customer service calls as protective against churn,
+      aligning with population benchmarks showing similar metrics for
+      retained customers. The customer's high lifetime value further
+      reinforces the likelihood of retention.
+      RECOMMENDATION: Proactively offer a personalized discount or exclusive
+      offer to this customer, reinforcing their value and encouraging another
+      purchase within the next 30 days. Continue monitoring their behavior
+      for any signs of disengagement and tailor future communications to
+      their preferences.
+
+
+5. KEY DIFFERENTIATORS BETWEEN MODELS
+--------------------------------------------------------------------------------
+
+  Qwen-specific patterns:
+    Uses 'superior model' framing: 2
+    Cites ROC-AUC scores: 2
+    Uses 'risk tier' explicitly: 28
+    References SHAP numeric values (e.g. +3.86): 39
+    Conservative (fewer churn predictions): See decision distribution
+
+  Gemma-specific patterns:
+    Uses 'ROC-AUC' framing: 133
+    References 'SHAP values' (generic): 191
+    Uses 'population benchmarks' explicitly: 194
+    Cites both model probabilities: 156
+    More detailed (longer explanations): mean=493 vs Qwen=411 chars
+
+================================================================================
+END OF FILE — verified manual/automated content analysis output
+================================================================================

@@ -1,0 +1,471 @@
+================================================================================
+  DEEP MANUAL INSPECTION
+  10 FULL EXPLANATION+RECOMMENDATION TRANSCRIPTS PER MODEL (5 churn, 5 retain)
+  PLUS 5 HEAD-TO-HEAD QWEN vs GEMMA DISAGREEMENT CASES
+  Source: outputs/llm_predictions/test_llm_predictions.csv
+  Purpose: manual, full-text validation of the automated counts reported in
+           01_explanations_200sample_analysis.txt and
+           02_recommendations_200sample_analysis.txt, and the basis for the
+           "Manual inspection" paragraphs in the paper (Tables 14 and 15).
+================================================================================
+
+
+================================================================================
+  QWEN — 10 FULL EXPLANATIONS + RECOMMENDATIONS (manual inspection)
+================================================================================
+
+--------------------------------------------------------------------------------
+[Q1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical | Age=31.0 | Country=France
+  reason_1: High Cart abandonment rate (90.1) increases churn risk [SHAP=+3.22, dominant driver]
+  reason_2: Low Returns rate (0.9) reduces churn risk [SHAP=-1.12, strong signal]
+  reason_3: High Lifetime value (656.35) reduces churn risk [SHAP=-0.47, moderate signal]
+  EXPLANATION: Both models independently predict churn with high confidence (91.0% and
+  82.9%), driven primarily by the dominant SHAP signal of extreme cart abandonment (90.10%)
+  which far exceeds the average churner benchmark of 64.174. Despite mitigating factors
+  like low returns and moderate lifetime value, the overwhelming behavioral evidence and
+  model consensus indicate this customer is at critical risk.
+  RECOMMENDATION: Immediately implement a targeted retention campaign focusing on
+  re-engaging the customer through personalized offers to address the high cart
+  abandonment, while simultaneously investigating the root cause of the 7 customer
+  service calls to resolve friction points.
+
+--------------------------------------------------------------------------------
+[Q2] y_true=1 | decision=churn | prob=0.9482 | tier=Critical | Age=26.0 | Country=UK
+  reason_1: High Days since last purchase (86.0) increases churn risk [SHAP=+1.80, dominant driver]
+  reason_2: High Customer service calls (9.0) increases churn risk [SHAP=+0.83, strong signal]
+  reason_3: Low Mobile app usage (1.3) increases churn risk [SHAP=+0.64, strong signal]
+  EXPLANATION: Both models agree on churn with high confidence, driven by the critical
+  86-day gap since last purchase (far exceeding the 26.936-day retained benchmark) and 9
+  service calls (surpassing the 5.19 retained average). Although long session duration
+  offers a slight protective signal, the overwhelming negative SHAP contributions from
+  purchase frequency and engagement metrics dictate a churn prediction.
+  RECOMMENDATION: Immediately deploy a high-value retention offer targeting the 86-day
+  inactivity gap while addressing the 9 service calls to resolve friction points, as the
+  risk tier is critical and behavioral signals indicate low likelihood of recovery
+  without intervention.
+
+--------------------------------------------------------------------------------
+[Q3] y_true=1 | decision=churn | prob=0.9965 | tier=Critical | Age=26.0 | Country=Japan
+  reason_1: Low Lifetime value (2498.13) increases churn risk [SHAP=+4.02, dominant driver]
+  reason_2: High Customer service calls (9.0) increases churn risk [SHAP=+3.09, dominant driver]
+  reason_3: Low Cart abandonment rate (53.3) reduces churn risk [SHAP=-0.44, moderate signal]
+  EXPLANATION: Both models independently predict churn with high confidence (99.7% and
+  85.5%), driven primarily by the customer's critical risk tier status and high service
+  call volume (9.0) which exceeds the population average for retained customers. Although
+  the customer has a relatively low return rate, the overwhelming model consensus and
+  SHAP dominance of service interactions indicate a high likelihood of leaving.
+  RECOMMENDATION: Immediately initiate a retention campaign focusing on resolving
+  outstanding service issues and offering a personalized discount to address the high
+  service call volume, as the behavioral data suggests dissatisfaction despite moderate
+  engagement.
+
+--------------------------------------------------------------------------------
+[Q4] y_true=1 | decision=churn | prob=0.9768 | tier=Critical | Age=48.0 | Country=USA
+  reason_1: High Returns rate (16.2) increases churn risk [SHAP=+1.02, strong signal]
+  reason_2: High Days since last purchase (62.0) increases churn risk [SHAP=+1.01, strong signal]
+  reason_3: High Cart abandonment rate (73.9) increases churn risk [SHAP=+0.96, strong signal]
+  EXPLANATION: Both models independently predict churn with high confidence (97.7% and
+  74.9%), driven by strong SHAP signals from high returns (16.20%), days since last
+  purchase (62), and cart abandonment (73.90%) that significantly exceed population
+  benchmarks. The customer's 7 service calls and 75.70% discount usage further indicate
+  dissatisfaction, while the high lifetime value is insufficient to override these
+  critical risk factors.
+  RECOMMENDATION: Immediately launch a targeted retention campaign offering a
+  personalized discount and a dedicated account manager to address the high return rate
+  and lack of recent purchases, as the behavioral signals indicate the customer is
+  actively disengaged.
+
+--------------------------------------------------------------------------------
+[Q5] y_true=1 | decision=churn | prob=0.9916 | tier=Critical | Age=21.0 | Country=USA
+  reason_1: Low Age (21.0) increases churn risk [SHAP=+3.87, dominant driver]
+  reason_2: Low Discount usage rate (29.8) increases churn risk [SHAP=+2.35, dominant driver]
+  reason_3: High Lifetime value (1043.63) reduces churn risk [SHAP=-0.28, moderate signal]
+  EXPLANATION: Both models agree on churn with high confidence (99.2% and 80.7%), driven
+  primarily by the customer's young age (21) which is a dominant SHAP risk factor, and
+  low discount usage despite high engagement. Although the customer has a high lifetime
+  value and low returns, the critical risk tier and overwhelming model consensus indicate
+  imminent churn.
+  RECOMMENDATION: Immediately deploy a high-value retention offer targeting the low
+  discount usage behavior to address the primary SHAP driver, while acknowledging that
+  without intervention, the customer's age profile suggests high churn risk.
+
+--------------------------------------------------------------------------------
+[Q6] y_true=0 | decision=retain | prob=0.0354 | tier=Low | Age=25.0 | Country=USA
+  reason_1: Low Days since last purchase (10.0) reduces churn risk [SHAP=-0.94, strong signal]
+  reason_2: High Lifetime value (436.49) reduces churn risk [SHAP=-0.76, strong signal]
+  reason_3: High Email open rate (22.1) reduces churn risk [SHAP=-0.55, strong signal]
+  EXPLANATION: Both models agree to retain the customer, with XGBoost indicating a low
+  3.5% churn probability driven by strong SHAP signals from low days since last purchase
+  (-0.94) and high lifetime value (-0.76), which significantly outperform the population
+  benchmarks for retained users. Despite the moderate churn risk associated with 6
+  customer service calls (+0.36), the overall behavioral profile and model consensus
+  strongly favor retention.
+  RECOMMENDATION: Implement a targeted retention campaign focusing on re-engagement for
+  the 10-day gap since last purchase, while addressing the root causes of the 6 service
+  calls to prevent future friction. Leverage the high email open rate to deliver
+  personalized offers that reinforce the customer's high lifetime value status.
+
+--------------------------------------------------------------------------------
+[Q7] y_true=0 | decision=retain | prob=0.0258 | tier=Low | Age=38.0 | Country=UK
+  reason_1: Low Days since last purchase (3.0) reduces churn risk [SHAP=-0.91, strong signal]
+  reason_2: Low Returns rate (0.8) reduces churn risk [SHAP=-0.83, strong signal]
+  reason_3: Low Customer service calls (3.0) reduces churn risk [SHAP=-0.81, strong signal]
+  EXPLANATION: Both XGBoost and Random Forest models unanimously predict retention with
+  low churn probabilities, driven by strong SHAP signals indicating the customer's recent
+  activity (3 days since last purchase) and low return rate significantly reduce churn
+  risk compared to population benchmarks. The behavioral data confirms this, as the
+  customer has a healthy lifetime value and minimal service interactions, distinguishing
+  them from typical churners.
+  RECOMMENDATION: Maintain the current retention strategy by avoiding aggressive discount
+  offers that could inflate the already high cart abandonment rate, and instead focus on
+  personalized engagement to capitalize on their high lifetime value and low churn risk
+  profile.
+
+--------------------------------------------------------------------------------
+[Q8] y_true=0 | decision=retain | prob=0.2558 | tier=Low | Age=36.0 | Country=Australia
+  reason_1: High Email open rate (31.4) reduces churn risk [SHAP=-1.34, strong signal]
+  reason_2: Low Cart abandonment rate (57.3) reduces churn risk [SHAP=-1.01, strong signal]
+  reason_3: High Customer service calls (14.0) increases churn risk [SHAP=+1.00, strong signal]
+  EXPLANATION: Both XGBoost and Random Forest models agree to retain the customer, with
+  XGBoost identifying high email open rates and low cart abandonment as strong
+  risk-reduction signals (SHAP=-1.34, -1.01), while acknowledging that high service call
+  volume (SHAP=+1.00) and long inactivity (SHAP=+0.80) are elevated risks. Despite the
+  43.9% churn probability from the Random Forest, the customer's lifetime value of
+  $516.73 and engagement metrics place them above the average retained benchmark,
+  warranting a proactive retention effort.
+  RECOMMENDATION: Implement a targeted re-engagement campaign focusing on the 57 days
+  since last purchase using the customer's preferred email channel, and offer a small
+  discount to close the gap between their 57.3% cart abandonment rate and the retained
+  benchmark of 54.178%.
+
+--------------------------------------------------------------------------------
+[Q9] y_true=0 | decision=retain | prob=0.3541 | tier=Low | Age=24.0 | Country=France
+  reason_1: High Discount usage rate (65.2) reduces churn risk [SHAP=-0.76, strong signal]
+  reason_2: High Lifetime value (858.03) reduces churn risk [SHAP=-0.71, strong signal]
+  reason_3: Low Email open rate (0.0) increases churn risk [SHAP=+0.67, strong signal]
+  EXPLANATION: Both models agree to retain the customer, with XGBoost indicating a
+  low-risk tier (35.4% churn probability) driven by high lifetime value and discount
+  usage, despite elevated risks from low email engagement and age. The Random Forest
+  model further supports this by highlighting customer service calls as a top feature,
+  suggesting active support is needed to mitigate the 49% churn probability.
+  RECOMMENDATION: Immediately implement a targeted email campaign to address the 0.0%
+  open rate and offer a personalized discount to leverage the high discount usage rate,
+  while assigning a dedicated customer service agent to engage the user given their 6
+  service calls.
+
+--------------------------------------------------------------------------------
+[Q10] y_true=0 | decision=retain | prob=0.0696 | tier=Low | Age=18.0 | Country=UK
+  reason_1: High Discount usage rate (75.7) reduces churn risk [SHAP=-1.37, strong signal]
+  reason_2: High Lifetime value (1280.33) reduces churn risk [SHAP=-0.97, strong signal]
+  reason_3: Low Age (18.0) increases churn risk [SHAP=+0.81, strong signal]
+  EXPLANATION: Both XGBOOST and Random Forest models unanimously predict retention,
+  driven by strong SHAP signals from high lifetime value and discount usage that outweigh
+  the churn risk associated with the customer's young age. Although the customer has a
+  relatively low lifetime value compared to the average retained population benchmark,
+  the behavioral metrics like recent login frequency and low cart abandonment indicate
+  high engagement and loyalty.
+  RECOMMENDATION: Implement a targeted retention campaign offering a personalized
+  discount to reinforce the high discount usage behavior and further increase lifetime
+  value, while monitoring the customer's service call history to prevent escalation.
+
+
+================================================================================
+  GEMMA — 10 FULL EXPLANATIONS + RECOMMENDATIONS (manual inspection)
+================================================================================
+
+--------------------------------------------------------------------------------
+[G1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical | Age=31.0 | Country=France
+  reason_1: High Cart abandonment rate (90.1) increases churn risk [SHAP=+3.22, dominant driver]
+  reason_2: Low Returns rate (0.9) reduces churn risk [SHAP=-1.12, strong signal]
+  reason_3: High Lifetime value (656.35) reduces churn risk [SHAP=-0.47, moderate signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict churn with high
+  confidence (91.0% and 82.9% respectively), aligning with population benchmarks showing
+  higher churn rates for customers with similar cart abandonment and returns rates. The
+  SHAP values highlight key drivers of churn, particularly the high cart abandonment rate
+  and customer service calls, suggesting a significant risk of attrition.
+  RECOMMENDATION: Immediately initiate a proactive outreach program focusing on
+  addressing the high cart abandonment rate through targeted offers and simplified
+  checkout processes. Simultaneously, investigate the reasons behind the 7 customer
+  service calls to identify and resolve underlying issues impacting this customer's
+  experience.
+
+--------------------------------------------------------------------------------
+[G2] y_true=1 | decision=churn | prob=0.7611 | tier=High | Age=58.0 | Country=USA
+  reason_1: High Days since last purchase (82.0) increases churn risk [SHAP=+1.64, dominant driver]
+  reason_2: High Lifetime value (1334.87) reduces churn risk [SHAP=-0.92, strong signal]
+  reason_3: Low Cart abandonment rate (59.8) reduces churn risk [SHAP=-0.84, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict churn with high
+  probabilities (76.1% and 56.1% respectively), supported by significant SHAP values
+  indicating high Days since last purchase, customer service calls, and low mobile app
+  usage as key drivers. The benchmark data further reinforces the concern around long
+  days since last purchase and a relatively high churn rate for similar customers,
+  suggesting this customer is at significant risk.
+  RECOMMENDATION: Immediately reach out to this customer with a personalized offer
+  (e.g., discount, exclusive content) and proactively address any potential issues
+  contributing to their inactivity and recent customer service interactions. Focus on
+  understanding their needs and re-engaging them with relevant value propositions to
+  prevent churn.
+
+--------------------------------------------------------------------------------
+[G3] y_true=1 | decision=churn | prob=0.9482 | tier=Critical | Age=26.0 | Country=UK
+  reason_1: High Days since last purchase (86.0) increases churn risk [SHAP=+1.80, dominant driver]
+  reason_2: High Customer service calls (9.0) increases churn risk [SHAP=+0.83, strong signal]
+  reason_3: Low Mobile app usage (1.3) increases churn risk [SHAP=+0.64, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict churn with high
+  confidence (94.8% and 67.3% respectively), supported by strong SHAP signals indicating
+  high Days since last purchase, Customer Service Calls, and low Mobile app usage as key
+  drivers. The benchmark data further highlights the negative impact of these factors,
+  particularly the high days since last purchase and customer service calls, suggesting
+  this customer is at significant risk of attrition.
+  RECOMMENDATION: Immediately engage with this customer through a personalized outreach,
+  focusing on understanding the reasons behind their inactivity and offering tailored
+  incentives to encourage a purchase or re-engagement. Proactively address any potential
+  issues identified through customer service interactions and consider offering a
+  targeted discount to drive immediate action.
+
+--------------------------------------------------------------------------------
+[G4] y_true=1 | decision=churn | prob=0.9965 | tier=Critical | Age=26.0 | Country=Japan
+  reason_1: Low Lifetime value (2498.13) increases churn risk [SHAP=+4.02, dominant driver]
+  reason_2: High Customer service calls (9.0) increases churn risk [SHAP=+3.09, dominant driver]
+  reason_3: Low Cart abandonment rate (53.3) reduces churn risk [SHAP=-0.44, moderate signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict churn with high
+  confidence (99.7% and 85.5% respectively), driven primarily by the customer's high
+  number of customer service calls and low lifetime value. The population benchmarks
+  support this, indicating that customers with similar metrics have a high churn rate.
+  Despite the moderate positive signals from low cart abandonment and email open rates,
+  the combined weight of these negative factors strongly suggests a high risk of churn.
+  RECOMMENDATION: Immediately engage the customer with a proactive outreach program
+  focused on addressing the root causes of their frequent customer service calls -
+  likely stemming from confusion or unmet needs. Offer a personalized discount or
+  incentive to encourage a new purchase and demonstrate value, aiming to boost their
+  lifetime value and prevent churn.
+
+--------------------------------------------------------------------------------
+[G5] y_true=1 | decision=churn | prob=0.9768 | tier=Critical | Age=48.0 | Country=USA
+  reason_1: High Returns rate (16.2) increases churn risk [SHAP=+1.02, strong signal]
+  reason_2: High Days since last purchase (62.0) increases churn risk [SHAP=+1.01, strong signal]
+  reason_3: High Cart abandonment rate (73.9) increases churn risk [SHAP=+0.96, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict churn with high
+  confidence (97.7% and 74.9% respectively), supported by strong SHAP signals
+  highlighting high returns, long inactivity, cart abandonment, and customer service
+  interactions as key drivers. The benchmarks confirm elevated churn rates for similar
+  metrics, and the customer's behavior aligns with these trends.
+  RECOMMENDATION: Immediately initiate a proactive outreach campaign offering a
+  personalized discount or incentive to encourage a purchase within the next 7-14 days,
+  coupled with a survey to understand the reasons behind the inactivity and recent
+  customer service interactions to address potential pain points.
+
+--------------------------------------------------------------------------------
+[G6] y_true=0 | decision=retain | prob=0.0354 | tier=Low | Age=25.0 | Country=USA
+  reason_1: Low Days since last purchase (10.0) reduces churn risk [SHAP=-0.94, strong signal]
+  reason_2: High Lifetime value (436.49) reduces churn risk [SHAP=-0.76, strong signal]
+  reason_3: High Email open rate (22.1) reduces churn risk [SHAP=-0.55, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict retention with high
+  confidence (ROC-AUC 0.927 and 0.921 respectively), and the churn probability is low for
+  this customer (3.5% vs. 24.0%). The SHAP values highlight that low Days since last
+  purchase, high Lifetime value, and high Email open rate are protective factors, while a
+  moderate increase in Customer service calls is a slight risk. The benchmark data
+  confirms that this customer's behavior is within the range of retained customers.
+  RECOMMENDATION: Proactively reach out to this customer with a personalized offer based
+  on their past purchases and engagement, focusing on highlighting new products or
+  features. Simultaneously, investigate the reasons behind the 6 customer service calls
+  to identify and address any underlying issues.
+
+--------------------------------------------------------------------------------
+[G7] y_true=0 | decision=retain | prob=0.0258 | tier=Low | Age=38.0 | Country=UK
+  reason_1: Low Days since last purchase (3.0) reduces churn risk [SHAP=-0.91, strong signal]
+  reason_2: Low Returns rate (0.8) reduces churn risk [SHAP=-0.83, strong signal]
+  reason_3: Low Customer service calls (3.0) reduces churn risk [SHAP=-0.81, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict retention with high
+  confidence (ROC-AUC 0.927 and 0.921 respectively), supported by low churn probabilities
+  (2.6% and 12.6% respectively). SHAP values highlight key factors like low days since
+  last purchase, returns rate, and customer service calls as protective against churn,
+  aligning with population benchmarks showing similar metrics for retained customers.
+  The customer's high lifetime value further reinforces the likelihood of retention.
+  RECOMMENDATION: Proactively offer a personalized discount or exclusive offer to this
+  customer, reinforcing their value and encouraging another purchase within the next 30
+  days. Continue monitoring their behavior for any signs of disengagement and tailor
+  future communications to their preferences.
+
+--------------------------------------------------------------------------------
+[G8] y_true=0 | decision=retain | prob=0.2558 | tier=Low | Age=36.0 | Country=Australia
+  reason_1: High Email open rate (31.4) reduces churn risk [SHAP=-1.34, strong signal]
+  reason_2: Low Cart abandonment rate (57.3) reduces churn risk [SHAP=-1.01, strong signal]
+  reason_3: High Customer service calls (14.0) increases churn risk [SHAP=+1.00, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict retention, with churn
+  probabilities of 25.6% and 43.9% respectively, indicating a relatively low risk of
+  churn. The SHAP values highlight that high email open rates and a high lifetime value
+  mitigate churn risk, while customer service calls and days since last purchase increase
+  it, aligning with population benchmarks showing lower churn for customers with similar
+  characteristics. This customer's behavior - particularly the high email engagement and
+  substantial lifetime value - outweigh the negative signals from customer service calls
+  and inactivity.
+  RECOMMENDATION: Proactively engage this customer with a personalized offer based on
+  their past purchases and browsing history, and schedule a brief check-in call to
+  understand any potential barriers to continued engagement. Focus on highlighting the
+  value they're receiving and addressing any concerns about their recent inactivity.
+
+--------------------------------------------------------------------------------
+[G9] y_true=0 | decision=retain | prob=0.3541 | tier=Low | Age=24.0 | Country=France
+  reason_1: High Discount usage rate (65.2) reduces churn risk [SHAP=-0.76, strong signal]
+  reason_2: High Lifetime value (858.03) reduces churn risk [SHAP=-0.71, strong signal]
+  reason_3: Low Email open rate (0.0) increases churn risk [SHAP=+0.67, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict retention with high
+  confidence (ROC-AUC 0.927 and 0.921 respectively), and the churn probability is
+  relatively low (35.4% and 49.0% respectively). SHAP values indicate that high lifetime
+  value, discount usage, and low age are protective factors, while low email open rates
+  and a high cart abandonment rate slightly increase risk, but the overall signal leans
+  towards retention. The benchmarks show that the customer's age and LTV are below
+  average, but the model's predictions outweigh these slight discrepancies.
+  RECOMMENDATION: Proactively engage this customer with a personalized offer addressing
+  the cart abandonment rate and a targeted email campaign designed to improve email open
+  rates. Consider offering a small incentive to complete a purchase and reiterate the
+  value proposition of our services.
+
+--------------------------------------------------------------------------------
+[G10] y_true=0 | decision=retain | prob=0.0696 | tier=Low | Age=18.0 | Country=UK
+  reason_1: High Discount usage rate (75.7) reduces churn risk [SHAP=-1.37, strong signal]
+  reason_2: High Lifetime value (1280.33) reduces churn risk [SHAP=-0.97, strong signal]
+  reason_3: Low Age (18.0) increases churn risk [SHAP=+0.81, strong signal]
+  EXPLANATION: Both the XGBoost and Random Forest models predict retention with high
+  confidence (ROC-AUC of 0.927 and 0.921, respectively), and the churn probability for
+  this customer is low (7.0% vs. 21.9%). SHAP values highlight positive factors like high
+  discount usage, lifetime value, and low age, alongside mitigating factors such as
+  recent purchase activity and low cart abandonment. This aligns with the population
+  benchmarks, which indicate a higher average lifetime value for retained customers.
+  RECOMMENDATION: Proactively offer a personalized discount or bundled offer to
+  incentivize another purchase within the next 30 days, reinforcing engagement and
+  demonstrating value. Simultaneously, investigate the reasons behind the customer's
+  recent inactivity to identify potential barriers and address them before they consider
+  leaving.
+
+
+================================================================================
+  DISAGREEMENT CASES — 5 examples where Qwen and Gemma differ
+================================================================================
+
+--------------------------------------------------------------------------------
+[D1] y_true=0 | Qwen=retain | Gemma=churn | prob=0.5972 | tier=Medium
+  reason_1: High Days since last purchase (149.0) increases churn risk [SHAP=+3.11, dominant driver]
+  QWEN EXPL: Despite XGBoost's CHURN prediction driven by the dominant SHAP signal of 149
+  days since last purchase, the Random Forest model's lower churn probability (39.2%) and
+  the customer's high lifetime value ($1599.11) and low returns rate (3.10%) suggest they
+  are a high-value, low-risk account. The behavioral data indicates strong engagement
+  with low cart abandonment (68.90% is high, but the customer has 10 purchases), making
+  them a prime candidate for retention efforts.
+  QWEN REC: Implement a targeted retention campaign focusing on re-engagement through
+  personalized offers or exclusive content to address the 149-day gap in purchases,
+  leveraging the customer's high lifetime value to justify the retention cost.
+  GEMMA EXPL: Both models disagree, but XGBoost's prediction of CHURN (59.7%) is more
+  aligned with the behavioral data, specifically the high Days since last purchase
+  (149.0) and low engagement metrics. Population benchmarks show that high Days since
+  last purchase and low Email Open Rate are significant churn indicators, and the SHAP
+  values highlight these as dominant drivers. Despite the positive impact of age and
+  customer service calls, the customer's prolonged inactivity suggests a higher risk of
+  churn.
+  GEMMA REC: Proactively reach out to this customer with a personalized offer, focusing
+  on re-engaging them with recent products or highlighting new features, and investigate
+  the reason for their inactivity to address potential issues or concerns.
+
+--------------------------------------------------------------------------------
+[D2] y_true=1 | Qwen=retain | Gemma=churn | prob=0.7922 | tier=High
+  reason_1: High Days since last purchase (73.0) increases churn risk [SHAP=+1.30, strong signal]
+  QWEN EXPL: Both models predict churn with high confidence, but the XGBoost model
+  explicitly notes that the customer's high lifetime value ($1102.64) acts as a strong
+  mitigating factor (-0.75 SHAP), indicating they are valuable enough to retain despite
+  the 73 days since last purchase. The behavioral data shows a low returns rate (4.20%)
+  and moderate engagement, suggesting the churn risk is driven by inactivity rather than
+  dissatisfaction.
+  QWEN REC: Implement a targeted win-back campaign offering a personalized discount to
+  re-engage the customer, leveraging their high lifetime value to justify the acquisition
+  cost while addressing the 73-day gap in activity.
+  GEMMA EXPL: Both the XGBoost and Random Forest models predict churn with high
+  probabilities (79.2% and 65.8% respectively), aligning with the population benchmark
+  indicating a higher churn risk for customers with similar behavior. The SHAP values
+  highlight significant concerns: high Days since last purchase, Cart abandonment rate,
+  Customer service calls, and low Email open rates are strong indicators of increased
+  churn risk, while a high Lifetime Value offers a slight mitigating factor.
+  GEMMA REC: Immediately initiate a proactive outreach program, focusing on understanding
+  the reasons behind the customer's inactivity and recent customer service interactions.
+  Offer a personalized discount or incentive to encourage a new purchase and re-engage
+  with the brand, addressing potential pain points.
+
+--------------------------------------------------------------------------------
+[D3] y_true=0 | Qwen=retain | Gemma=churn | prob=0.7657 | tier=High
+  reason_1: High Customer service calls (9.0) increases churn risk [SHAP=+0.92, strong signal]
+  QWEN EXPL: Despite both models predicting churn due to high customer service calls
+  (9.0) and low purchase volume, the customer's low returns rate (3.80%) and moderate
+  lifetime value ($318.86) indicate satisfaction with product quality, while the high
+  discount usage (76.10%) suggests price sensitivity rather than disengagement. The
+  population benchmarks show this customer's service call count is significantly below
+  the average for churners, and their purchase history is more aligned with retained
+  users.
+  QWEN REC: Implement a targeted retention campaign offering a personalized discount to
+  address the high discount usage rate and low email engagement, while proactively
+  resolving the 9 customer service tickets to prevent escalation and reinforce trust.
+  GEMMA EXPL: Both the XGBoost and Random Forest models predict churn with high
+  probabilities (76.6% and 61.9% respectively), driven by high customer service calls,
+  low purchase volume, and a concerning email open rate. The SHAP values highlight the
+  significance of these factors, alongside the benchmark data indicating that customers
+  with similar characteristics tend to churn more frequently. This customer's behavior -
+  particularly frequent customer service calls and low purchase frequency - strongly
+  suggests an elevated churn risk.
+  GEMMA REC: Immediately engage with this customer via a personalized outreach, focusing
+  on understanding the reasons behind their frequent contact with customer service and
+  offering tailored incentives to encourage repeat purchases and engagement. A proactive
+  conversation and targeted support could potentially prevent churn.
+
+--------------------------------------------------------------------------------
+[D4] y_true=1 | Qwen=retain | Gemma=churn | prob=0.6055 | tier=High
+  reason_1: Low Email open rate (1.8) increases churn risk [SHAP=+0.91, strong signal]
+  QWEN EXPL: The final decision is to retain the customer because the Random Forest model
+  (40.2% probability) predicts retention, and the XGBoost's high churn signal is
+  counterbalanced by its own SHAP finding that the customer's high lifetime value ($909)
+  actively reduces churn risk. Additionally, the customer's low cart abandonment rate
+  (72.2%) is significantly below the average retained benchmark of 54.178, indicating
+  strong purchase intent despite the high discount usage.
+  QWEN REC: Implement a targeted retention campaign focusing on re-engagement through
+  email, given the low open rate (1.8%), while offering a personalized discount to
+  counter the high discount usage rate and prevent churn. Prioritize this customer for a
+  dedicated account manager to address the six service calls and build loyalty.
+  GEMMA EXPL: Both models disagree, but XGBoost's higher ROC-AUC (0.927) and the strong
+  SHAP signals - particularly the low email open rate, high cart abandonment, and
+  customer service calls - strongly suggest this customer is at high risk of churning.
+  Despite a decent lifetime value, the behavioral data points towards dissatisfaction and
+  potential issues driving away this customer.
+  GEMMA REC: Immediately initiate a proactive outreach program, focusing on understanding
+  the reasons behind the high cart abandonment and customer service interactions. Offer a
+  personalized discount or incentive to address potential concerns and encourage a recent
+  purchase to demonstrate value and engagement.
+
+--------------------------------------------------------------------------------
+[D5] y_true=0 | Qwen=retain | Gemma=churn | prob=0.6769 | tier=High
+  reason_1: High Cart abandonment rate (78.1) increases churn risk [SHAP=+1.20, strong signal]
+  QWEN EXPL: Although both models predict churn, the XGBoost model assigns a high risk
+  (67.7%) primarily due to cart abandonment, while the Random Forest model shows a
+  moderate risk (54.8%) with Customer_Service_Calls as the top driver; however, the
+  customer's low service call count (5.0) actually reduces churn risk compared to the
+  population average (6.879), and their high lifetime value ($711.01) indicates strong
+  long-term potential. The behavioral data shows a 37-day gap since last purchase rather
+  than a permanent disengagement, suggesting a recoverable state rather than confirmed
+  churn.
+  QWEN REC: Implement a targeted win-back campaign offering a personalized discount to
+  address the high cart abandonment rate and re-engage the customer, while simultaneously
+  assigning a dedicated support agent to resolve any outstanding issues and increase
+  customer service interactions.
+  GEMMA EXPL: Both the XGBoost and Random Forest models predict churn with high
+  probabilities (67.7% and 54.8% respectively), aligning with the population benchmarks
+  indicating higher churn rates for customers with similar cart abandonment and customer
+  service call volumes. The SHAP values highlight key drivers - particularly the high
+  cart abandonment rate and low email open rate - as significant contributors to the
+  predicted churn, alongside moderate impacts from mobile app usage and returns rate.
+  GEMMA REC: Immediately engage this customer with a proactive outreach, offering
+  personalized support and addressing potential barriers to purchase, such as
+  streamlining the checkout process or offering a tailored discount to incentivize a
+  purchase. Simultaneously, investigate the reasons behind the low email engagement to
+  improve communication effectiveness.
+
+================================================================================
+END OF FILE — 20 full transcripts (10 per model) + 5 disagreement case pairs
+manually read and verified by the authors.
+================================================================================

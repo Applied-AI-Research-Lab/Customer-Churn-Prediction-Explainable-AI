@@ -1,0 +1,12 @@
+{
+  "Customer_Service_Calls": 0.1471,
+  "Lifetime_Value": 0.1281,
+  "Cart_Abandonment_Rate": 0.1037,
+  "Age": 0.0821,
+  "Discount_Usage_Rate": 0.0573,
+  "Days_Since_Last_Purchase": 0.0526,
+  "Average_Order_Value": 0.0494,
+  "Total_Purchases": 0.0477,
+  "Email_Open_Rate": 0.0454,
+  "Pages_Per_Session": 0.0375
+}

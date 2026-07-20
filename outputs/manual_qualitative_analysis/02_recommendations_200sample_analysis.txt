@@ -1,0 +1,232 @@
+================================================================================
+  QUALITATIVE ANALYSIS — 200 RECOMMENDATIONS PER MODEL
+  Source: outputs/llm_predictions/test_llm_predictions.csv
+  Sampling: df[df["qwen_recommendation"].notna()].sample(200, random_state=42)
+            df[df["gemma_recommendation"].notna()].sample(200, random_state=42)
+================================================================================
+
+1. STRUCTURAL PATTERNS
+--------------------------------------------------------------------------------
+
+  [QWEN] (n=200)
+    Avg chars: 244 | Avg words: 35 | Avg sentences: 1.3
+    Top opening phrases:
+      'Maintain the current retention strategy...' — 31 (16%)
+      'Implement a targeted retention campaign...' — 24 (12%)
+      'Implement a targeted re-engagement campaign...' — 22 (11%)
+      'Implement a targeted loyalty reward...' — 10 (5%)
+      'Implement a targeted win-back campaign...' — 10 (5%)
+      'Immediately deploy a high-value retention...' — 10 (5%)
+      'Immediately initiate a retention outreach...' — 7 (4%)
+      'Maintain the current engagement strategy...' — 6 (3%)
+    Multi-action (>=2 action verbs): 200 (100%)
+    Conditional language: 110 (55%)
+    Time urgency markers: 72 (36%)
+    Root-cause analysis: 43 (22%)
+    Monitoring/ongoing: 15 (8%)
+    Top action verbs:
+      'offer': 164 (82%)
+      'address': 137 (68%)
+      'target': 135 (68%)
+      'engage': 120 (60%)
+      'implement': 102 (51%)
+      'personalize': 102 (51%)
+      'maintain': 56 (28%)
+      'focus': 54 (27%)
+      'immediately': 53 (26%)
+      'proactively': 36 (18%)
+      'reinforce': 25 (12%)
+      'capitalize': 25 (12%)
+    Channels mentioned:
+      'call': 86 (43%)
+      'email': 40 (20%)
+      'outreach': 10 (5%)
+      'social media': 8 (4%)
+      'mobile app': 4 (2%)
+    Intervention types:
+      'discount': 117 (58%)
+      'loyalty': 60 (30%)
+      'retention campaign': 48 (24%)
+      're-engagement': 36 (18%)
+      'exclusive': 23 (12%)
+      'reward': 22 (11%)
+      'dedicated': 17 (8%)
+      'win-back': 16 (8%)
+      'personalized offer': 15 (8%)
+      'support': 15 (8%)
+
+  [GEMMA] (n=200)
+    Avg chars: 290 | Avg words: 41 | Avg sentences: 1.7
+    Top opening phrases:
+      'Proactively offer a personalized discount...' — 37 (18%)
+      'Immediately initiate a proactive outreach...' — 32 (16%)
+      'Proactively reach out to this...' — 31 (16%)
+      'Proactively engage this customer with...' — 30 (15%)
+      'Proactively offer personalized product recommendations...' — 15 (8%)
+      'Proactively reach out to the...' — 9 (4%)
+      'Immediately reach out to this...' — 6 (3%)
+      'Immediately engage with this customer...' — 6 (3%)
+    Multi-action (>=2 action verbs): 200 (100%)
+    Conditional language: 48 (24%)
+    Time urgency markers: 108 (54%)
+    Root-cause analysis: 113 (56%)
+    Monitoring/ongoing: 62 (31%)
+    Top action verbs:
+      'personalize': 199 (100%)
+      'offer': 198 (99%)
+      'proactively': 147 (74%)
+      'address': 132 (66%)
+      'engage': 129 (64%)
+      'focus': 93 (46%)
+      'encourage': 82 (41%)
+      'understand': 64 (32%)
+      'immediately': 61 (30%)
+      'target': 60 (30%)
+      'recommend': 58 (29%)
+      'reach out': 48 (24%)
+    Channels mentioned:
+      'call': 63 (32%)
+      'outreach': 50 (25%)
+      'email': 44 (22%)
+      'mobile app': 11 (6%)
+    Intervention types:
+      'discount': 129 (64%)
+      'personalized offer': 64 (32%)
+      'incentive': 63 (32%)
+      'exclusive': 59 (30%)
+      'product recommendation': 49 (24%)
+      'loyalty': 25 (12%)
+      'support': 25 (12%)
+      'reward': 9 (4%)
+      'curated': 5 (2%)
+      'survey': 4 (2%)
+
+
+2. CHURN vs RETAIN RECOMMENDATION DIFFERENCES
+--------------------------------------------------------------------------------
+
+  [QWEN]
+    Churn recs: 53 | Retain recs: 147
+    CHURN (n=53): avg_len=232 | urgency=53(100%) | discount=38(72%) |
+      loyalty=5(9%) | investigate=5(9%) | monitor=0(0%) | personalize=28(53%)
+      | re-engage=15(28%)
+    RETAIN (n=147): avg_len=248 | urgency=3(2%) | discount=79(54%) |
+      loyalty=55(37%) | investigate=7(5%) | monitor=14(10%) |
+      personalize=74(50%) | re-engage=50(34%)
+
+  [GEMMA]
+    Churn recs: 63 | Retain recs: 137
+    CHURN (n=63): avg_len=313 | urgency=61(97%) | discount=47(75%) |
+      loyalty=1(2%) | investigate=55(87%) | monitor=4(6%) |
+      personalize=62(98%) | re-engage=17(27%)
+    RETAIN (n=137): avg_len=280 | urgency=1(1%) | discount=82(60%) |
+      loyalty=24(18%) | investigate=46(34%) | monitor=22(16%) |
+      personalize=137(100%) | re-engage=7(5%)
+
+
+3. SPECIFICITY (ties to customer data)
+--------------------------------------------------------------------------------
+
+  [QWEN] (n=200)
+    Cites numeric values: 36 (18%)
+    References 'days': 60 (30%)
+    References 'calls': 86 (43%)
+    References 'cart': 59 (30%)
+    References 'email': 40 (20%)
+    References LTV: 69 (34%)
+    References age: 149 (74%)
+
+  [GEMMA] (n=200)
+    Cites numeric values: 1 (0%)
+    References 'days': 51 (26%)
+    References 'calls': 63 (32%)
+    References 'cart': 62 (31%)
+    References 'email': 44 (22%)
+    References LTV: 3 (2%)
+    References age: 166 (83%)
+
+
+4. REPRESENTATIVE SAMPLES (5 per model)
+--------------------------------------------------------------------------------
+
+================================================================================
+  QWEN — 5 representative recommendations
+================================================================================
+
+  [1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical
+      RECOMMENDATION: Immediately implement a targeted retention campaign
+      focusing on re-engaging the customer through personalized offers to
+      address the high cart abandonment, while simultaneously investigating
+      the root cause of the 7 customer service calls to resolve friction
+      points.
+
+  [2] y_true=1 | decision=churn | prob=0.9482 | tier=Critical
+      RECOMMENDATION: Immediately deploy a high-value retention offer
+      targeting the 86-day inactivity gap while addressing the 9 service
+      calls to resolve friction points, as the risk tier is critical and
+      behavioral signals indicate low likelihood of recovery without
+      intervention.
+
+  [3] y_true=1 | decision=churn | prob=0.9965 | tier=Critical
+      RECOMMENDATION: Immediately initiate a retention campaign focusing on
+      resolving outstanding service issues and offering a personalized
+      discount to address the high service call volume, as the behavioral
+      data suggests dissatisfaction despite moderate engagement.
+
+  [4] y_true=0 | decision=retain | prob=0.0354 | tier=Low
+      RECOMMENDATION: Implement a targeted retention campaign focusing on
+      re-engagement for the 10-day gap since last purchase, while addressing
+      the root causes of the 6 service calls to prevent future friction.
+      Leverage the high email open rate to deliver personalized offers that
+      reinforce the customer's high lifetime value status.
+
+  [5] y_true=0 | decision=retain | prob=0.0258 | tier=Low
+      RECOMMENDATION: Maintain the current retention strategy by avoiding
+      aggressive discount offers that could inflate the already high cart
+      abandonment rate, and instead focus on personalized engagement to
+      capitalize on their high lifetime value and low churn risk profile.
+
+================================================================================
+  GEMMA — 5 representative recommendations
+================================================================================
+
+  [1] y_true=1 | decision=churn | prob=0.9103 | tier=Critical
+      RECOMMENDATION: Immediately initiate a proactive outreach program
+      focusing on addressing the high cart abandonment rate through targeted
+      offers and simplified checkout processes. Simultaneously, investigate
+      the reasons behind the 7 customer service calls to identify and
+      resolve underlying issues impacting this customer's experience.
+
+  [2] y_true=1 | decision=churn | prob=0.7611 | tier=High
+      RECOMMENDATION: Immediately reach out to this customer with a
+      personalized offer (e.g., discount, exclusive content) and proactively
+      address any potential issues contributing to their inactivity and
+      recent customer service interactions. Focus on understanding their
+      needs and re-engaging them with relevant value propositions to
+      prevent churn.
+
+  [3] y_true=1 | decision=churn | prob=0.9482 | tier=Critical
+      RECOMMENDATION: Immediately engage with this customer through a
+      personalized outreach, focusing on understanding the reasons behind
+      their inactivity and offering tailored incentives to encourage a
+      purchase or re-engagement. Proactively address any potential issues
+      identified through customer service interactions and consider
+      offering a targeted discount to drive immediate action.
+
+  [4] y_true=0 | decision=retain | prob=0.0354 | tier=Low
+      RECOMMENDATION: Proactively reach out to this customer with a
+      personalized offer based on their past purchases and engagement,
+      focusing on highlighting new products or features. Simultaneously,
+      investigate the reasons behind the 6 customer service calls to
+      identify and address any underlying issues.
+
+  [5] y_true=0 | decision=retain | prob=0.0258 | tier=Low
+      RECOMMENDATION: Proactively offer a personalized discount or exclusive
+      offer to this customer, reinforcing their value and encouraging
+      another purchase within the next 30 days. Continue monitoring their
+      behavior for any signs of disengagement and tailor future
+      communications to their preferences.
+
+================================================================================
+END OF FILE — verified manual/automated content analysis output
+================================================================================
