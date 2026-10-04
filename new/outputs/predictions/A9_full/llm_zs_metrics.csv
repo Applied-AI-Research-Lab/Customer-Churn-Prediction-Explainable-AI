@@ -1,0 +1,2 @@
+model,n_evaluated,accuracy,precision,recall,f1,roc_auc,avg_time_sec
+gemma,7501,0.9093,0.8526,0.8298,0.841,0.8857,24.42

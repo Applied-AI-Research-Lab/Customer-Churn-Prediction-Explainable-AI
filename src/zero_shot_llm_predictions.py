@@ -1,41 +1,6 @@
-#!/usr/bin/env python3
-"""
-Zero-Shot LLM Churn Explainability Layer
-=========================================
-Reads the LLM-ready test file (XGBoost SHAP signals + raw features) and
-the Random Forest test predictions, builds a structured advisory-panel
-prompt per customer row, and passes it to both SLMs in zero-shot mode.
-
-Each SLM returns a JSON object:
-  • decision      — "churn" or "retain"
-  • explanation   — 2-3 sentences referencing panel signals and SHAP reasons
-  • recommendation — 1-2 sentences of actionable advice for the business owner
-
-Models (Unsloth, 4-bit):
-  • unsloth/Qwen3.5-4B      → FastLanguageModel  (thinking mode disabled)
-  • unsloth/gemma-3-4b-it   → FastModel
-
-New columns written to outputs/llm_predictions/test_llm_predictions.csv:
-  qwen_decision, qwen_explanation, qwen_recommendation, qwen_time_sec
-  gemma_decision, gemma_explanation, gemma_recommendation, gemma_time_sec
-
-Usage (GPU server venv):
-    python src/zero_shot_llm_predictions.py
-    python src/zero_shot_llm_predictions.py --limit 100          # smoke test
-    python src/zero_shot_llm_predictions.py --model qwen         # only Qwen
-    python src/zero_shot_llm_predictions.py --model gemma        # only Gemma
-    python src/zero_shot_llm_predictions.py --resume             # continue from checkpoint
-
-Requires: unsloth, torch (CUDA), transformers, pandas, tqdm
-"""
 
 from __future__ import annotations
 
-# ── Force-set HF env vars BEFORE any huggingface import ──────────────────────
-# HF_HUB_DISABLE_XET=1  : disables the XET protocol which stalls on some servers
-# HF_TOKEN              : set via setenv in tcsh before running the script:
-#   setenv HF_TOKEN <your_hf_token>
-#   setenv HF_HUB_DISABLE_XET 1
 import os
 os.environ.setdefault("HF_HUB_DISABLE_XET", "1")
 
@@ -52,54 +17,36 @@ from typing import Optional
 import pandas as pd
 import torch
 
-# ── Disable torch.compile / dynamo for inference ─────────────────────────────
-# Qwen3.5-4B uses a hybrid GatedDeltaNet architecture whose causal_conv1d_update
-# layer triggers endless recompilations as prompt lengths vary across rows,
-# eventually hitting accumulated_cache_size_limit.
-# torch.compile provides zero benefit for inference — disabling it is safe.
 import torch._dynamo
 torch._dynamo.config.disable = True
 
 from tqdm import tqdm
 
-# Support-file globals (populated in main via _load_support_files)
 _RF_IMPORTANCES: dict = {}
 _BENCHMARKS: dict = {}
 
 ALLOWED_DECISIONS = {"churn", "retain"}
-SAVE_EVERY = 10          # checkpoint to disk every N processed rows
+SAVE_EVERY = 10
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration  (mirrors old-project ZeroShotConfig)
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class ChurnZeroShotConfig:
-    # Input paths (relative to project root)
     llm_ready_csv: str  = "outputs/llm_ready/llm_ready_xgboost.csv"
     rf_pred_csv: str    = "outputs/predictions/test_predictions_random_forest.csv"
 
-    # Output
     output_dir: str     = "outputs/llm_predictions"
     output_csv: str     = "outputs/llm_predictions/test_llm_predictions.csv"
 
-    # Model identifiers — same as old project
     qwen_model_name: str  = "unsloth/Qwen3.5-4B"
     gemma_model_name: str = "unsloth/gemma-3-4b-it"
 
     max_seq_length: int  = 2048
     load_in_4bit: bool   = True
 
-    # Generation — Qwen
-    # 512 → 350: smoke test shows responses complete well within 350 tokens
     qwen_max_new_tokens: int  = 350
     qwen_temperature: float   = 0.3
     qwen_top_p: float         = 0.9
 
-    # Generation — Gemma
-    # 300 tokens: smoke test responses need ~225 tokens (explanation ~550 chars +
-    # recommendation ~300 chars + JSON overhead). 180 caused truncation mid-JSON.
     gemma_max_new_tokens: int = 300
     gemma_temperature: float  = 0.7
     gemma_top_p: float        = 0.95
@@ -107,10 +54,6 @@ class ChurnZeroShotConfig:
 
     generation_retry_attempts: int = 4
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# GPU verification
-# ─────────────────────────────────────────────────────────────────────────────
 
 def verify_gpu() -> None:
     print("=" * 60)
@@ -125,7 +68,6 @@ def verify_gpu() -> None:
     print(f"  VRAM:         {gpu_mem:.1f} GB")
     print(f"  CUDA version: {torch.version.cuda}")
     print(f"  PyTorch:      {torch.__version__}")
-    # Smoke test
     _ = torch.matmul(torch.randn(512, 512, device="cuda"),
                      torch.randn(512, 512, device="cuda"))
     torch.cuda.synchronize()
@@ -133,15 +75,10 @@ def verify_gpu() -> None:
     print("=" * 60)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Prompt builder  (advisory-panel style — same pattern as old project)
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _fmt(val, decimals: int = 2) -> str:
-    """Format a possibly-NaN numeric value for display."""
     try:
         f = float(val)
-        if f != f:          # NaN check
+        if f != f:
             return "N/A"
         return f"{f:.{decimals}f}"
     except (TypeError, ValueError):
@@ -149,8 +86,6 @@ def _fmt(val, decimals: int = 2) -> str:
 
 
 def build_prompt(row: pd.Series) -> str:
-    """Construct the advisory-panel prompt for a single customer row."""
-    # ── Customer profile ──────────────────────────────────────────────────────
     age        = _fmt(row.get("Age"), 0)
     gender     = str(row.get("Gender", "N/A"))
     country    = str(row.get("Country", "N/A"))
@@ -159,7 +94,6 @@ def build_prompt(row: pd.Series) -> str:
     credit_bal = _fmt(row.get("Credit_Balance"))
     signup_q   = str(row.get("Signup_Quarter", "N/A"))
 
-    # ── Behavioral signals ────────────────────────────────────────────────────
     login_freq = _fmt(row.get("Login_Frequency"), 0)
     session    = _fmt(row.get("Session_Duration_Avg"))
     cart_ab    = _fmt(row.get("Cart_Abandonment_Rate"))
@@ -173,7 +107,6 @@ def build_prompt(row: pd.Series) -> str:
     mobile_app = _fmt(row.get("Mobile_App_Usage"))
     discount   = _fmt(row.get("Discount_Usage_Rate"))
 
-    # ── Model predictions ─────────────────────────────────────────────────────
     xgb_pred   = str(row.get("churn_decision", "N/A")).upper()
     xgb_prob   = _fmt(float(row.get("y_proba", 0)) * 100, 1)
 
@@ -185,14 +118,11 @@ def build_prompt(row: pd.Series) -> str:
     else:
         rf_decision, rf_prob = "N/A", "N/A"
 
-    # ── SHAP top-5 reasons with magnitudes ────────────────────────────────────
     reasons = [str(row.get(f"reason_{k}", "N/A")) for k in range(1, 6)]
     r_lines = "\n".join(f"    SHAP reason {k}   : {r}" for k, r in enumerate(reasons, 1) if r and r != "N/A")
 
-    # ── Risk tier ─────────────────────────────────────────────────────────────
     risk_tier = str(row.get("risk_tier", "N/A"))
 
-    # ── RF global feature importances (top 5) ─────────────────────────────────
     if _RF_IMPORTANCES:
         rf_top5 = list(_RF_IMPORTANCES.items())[:5]
         rf_imp_lines = "  ".join(
@@ -202,10 +132,8 @@ def build_prompt(row: pd.Series) -> str:
     else:
         rf_imp_lines = "N/A"
 
-    # ── Population benchmarks for top SHAP features ───────────────────────────
     bench_lines = ""
     if _BENCHMARKS:
-        # Find which original features correspond to the top SHAP reasons
         bench_feats = []
         for r in reasons[:3]:
             for feat in _BENCHMARKS:
@@ -214,7 +142,7 @@ def build_prompt(row: pd.Series) -> str:
                     if feat not in bench_feats:
                         bench_feats.append(feat)
                     break
-        if not bench_feats:          # fallback: top-3 by overall importance
+        if not bench_feats:
             bench_feats = list(_BENCHMARKS.keys())[:3]
         bench_parts = []
         for feat in bench_feats[:3]:
@@ -227,7 +155,6 @@ def build_prompt(row: pd.Series) -> str:
             )
         bench_lines = "\n".join(bench_parts)
 
-    # ── Agreement status ──────────────────────────────────────────────────────
     preds = [xgb_pred, rf_decision]
     unique_preds = set(p for p in preds if p not in ("N/A",))
     if len(unique_preds) == 1:
@@ -296,34 +223,18 @@ def build_prompt(row: pd.Series) -> str:
     )
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Response parser  (same logic as old project — strips Qwen3 <think> blocks)
-# ─────────────────────────────────────────────────────────────────────────────
-
 class FormatError(RuntimeError):
     pass
 
 
 def parse_response(raw: str) -> tuple[str, str, str]:
-    """Extract decision / explanation / recommendation from a JSON model response.
-
-    Handles:
-    - Standard single-line JSON
-    - Pretty-printed JSON (with newlines)
-    - Qwen3 <think>...</think> preamble
-    - Markdown code fences
-    - Truncated JSON: tries regex fallback to salvage at least the decision
-    """
     text = str(raw).strip()
 
-    # Strip Qwen3 <think>...</think> blocks
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
-    # Strip markdown code fences
     text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE).strip()
     text = re.sub(r"\s*```$", "", text).strip()
 
-    # ── Attempt 1: full valid JSON ────────────────────────────────────────────
     json_m = re.search(r"\{.*\}", text, re.DOTALL)
     if json_m:
         try:
@@ -339,11 +250,8 @@ def parse_response(raw: str) -> tuple[str, str, str]:
                 )
             raise FormatError(f"Invalid decision '{decision}' — must be 'churn' or 'retain'")
         except json.JSONDecodeError:
-            pass  # fall through to truncation recovery
+            pass
 
-    # ── Attempt 2: truncation recovery ───────────────────────────────────────
-    # The response was cut mid-JSON (max_new_tokens reached). Try to recover
-    # the decision and whatever partial explanation/recommendation exists.
     dec_m  = re.search(r'"decision"\s*:\s*"(churn|retain)"', text, re.IGNORECASE)
     expl_m = re.search(r'"explanation"\s*:\s*"([^"]{20,})', text, re.DOTALL)
     rec_m  = re.search(r'"recommendation"\s*:\s*"([^"]{10,})', text, re.DOTALL)
@@ -357,14 +265,8 @@ def parse_response(raw: str) -> tuple[str, str, str]:
     raise FormatError(f"No JSON object found in: {text!r}")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Chat template helper  (copied verbatim from old project model_utils)
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _apply_chat_template_compat(tokenizer, messages: list[dict],
                                 enable_thinking: bool = False, **kwargs):
-    """Handle Qwen models that require content as block dicts and
-    may or may not accept `enable_thinking`."""
     call_kwargs = dict(enable_thinking=enable_thinking, **kwargs)
     try:
         return tokenizer.apply_chat_template(messages, **call_kwargs)
@@ -378,7 +280,6 @@ def _apply_chat_template_compat(tokenizer, messages: list[dict],
             except TypeError as exc2:
                 if "string indices must be integers" not in str(exc2):
                     raise
-        # Block-format content fallback
         block_msgs = [
             {
                 "role": m["role"],
@@ -392,10 +293,6 @@ def _apply_chat_template_compat(tokenizer, messages: list[dict],
         except TypeError:
             return tokenizer.apply_chat_template(block_msgs, **kwargs)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Qwen inference  (FastLanguageModel, thinking disabled)
-# ─────────────────────────────────────────────────────────────────────────────
 
 def load_qwen(cfg: ChurnZeroShotConfig):
     from unsloth import FastLanguageModel
@@ -477,7 +374,7 @@ def run_qwen(df: pd.DataFrame, prompts: list[str],
 
     for i, (idx, row) in enumerate(tqdm(df.iterrows(), total=n, desc="Qwen")):
         if pd.notna(df.at[idx, "qwen_decision"]):
-            continue  # resume skip
+            continue
 
         try:
             dec, expl, rec, elapsed = infer_qwen(model, tokenizer, prompts[i], cfg)
@@ -513,10 +410,6 @@ def run_qwen(df: pd.DataFrame, prompts: list[str],
     print("Qwen zero-shot complete.")
     return df
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Gemma inference  (FastModel)
-# ─────────────────────────────────────────────────────────────────────────────
 
 def load_gemma(cfg: ChurnZeroShotConfig):
     from unsloth import FastModel
@@ -633,10 +526,6 @@ def run_gemma(df: pd.DataFrame, prompts: list[str],
     return df
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Metrics
-# ─────────────────────────────────────────────────────────────────────────────
-
 def compute_and_save_metrics(df: pd.DataFrame, cfg: ChurnZeroShotConfig) -> None:
     from sklearn.metrics import (
         accuracy_score, f1_score, precision_score, recall_score, roc_auc_score,
@@ -669,7 +558,6 @@ def compute_and_save_metrics(df: pd.DataFrame, cfg: ChurnZeroShotConfig) -> None
         prec = precision_score(y_true_sub, y_pred_bin, zero_division=0)
         rec  = recall_score(y_true_sub, y_pred_bin, zero_division=0)
         f1   = f1_score(y_true_sub, y_pred_bin, zero_division=0)
-        # AUC from decision (binary, no proba available)
         auc  = roc_auc_score(y_true_sub, y_pred_bin)
         avg_t = df[f"{prefix}_time_sec"].mean()
 
@@ -706,12 +594,7 @@ def compute_and_save_metrics(df: pd.DataFrame, cfg: ChurnZeroShotConfig) -> None
         print(f"\n  Metrics saved → {metrics_path}")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Data preparation
-# ─────────────────────────────────────────────────────────────────────────────
-
 def load_and_merge(cfg: ChurnZeroShotConfig) -> pd.DataFrame:
-    """Merge the XGBoost LLM-ready file with RF predictions."""
     llm_ready = pd.read_csv(cfg.llm_ready_csv)
     rf_preds  = pd.read_csv(cfg.rf_pred_csv)
 
@@ -724,21 +607,15 @@ def load_and_merge(cfg: ChurnZeroShotConfig) -> pd.DataFrame:
             "Both files must correspond to the same test set."
         )
 
-    # Rename RF columns to avoid collision
     rf_preds = rf_preds.rename(columns={
         "y_pred": "rf_pred",
         "y_proba": "rf_proba",
     }).drop(columns=["y_true"], errors="ignore")
 
-    # Row-wise merge (both are already in test-set order)
     df = pd.concat([llm_ready.reset_index(drop=True),
                     rf_preds.reset_index(drop=True)], axis=1)
     return df
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CLI
-# ─────────────────────────────────────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -760,12 +637,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _load_support_files(cfg: ChurnZeroShotConfig) -> None:
-    """Load RF importances and population benchmarks into module-level dicts."""
     global _RF_IMPORTANCES, _BENCHMARKS
     llm_dir = Path(cfg.llm_ready_csv).parent
 
@@ -802,11 +674,9 @@ def main() -> None:
 
     verify_gpu()
 
-    # ── Load RF importances + population benchmarks ────────────────────────
     print("\nLoading support files (RF importances + benchmarks)...")
     _load_support_files(cfg)
 
-    # ── Load / resume ──────────────────────────────────────────────────────
     output_path = Path(cfg.output_csv)
     if args.resume and output_path.exists():
         df = pd.read_csv(output_path)
@@ -822,12 +692,10 @@ def main() -> None:
     print(f"\nTotal rows to process: {len(df)}")
     print(f"Churn distribution (y_true): {df['y_true'].value_counts().to_dict()}")
 
-    # ── Build prompts (CPU, cheap) ─────────────────────────────────────────
     print("\nBuilding advisory-panel prompts...")
     prompts = [build_prompt(row) for _, row in df.iterrows()]
     print(f"Built {len(prompts)} prompts.")
 
-    # ── Inference ─────────────────────────────────────────────────────────
     run_qwen_flag   = args.model in ("qwen",  "both")
     run_gemma_flag  = args.model in ("gemma", "both")
 
@@ -837,12 +705,10 @@ def main() -> None:
     if run_gemma_flag:
         df = run_gemma(df, prompts, cfg)
 
-    # ── Final save ─────────────────────────────────────────────────────────
     df.to_csv(output_path, index=False)
     print(f"\nFinal output saved → {output_path}")
     print(f"Shape: {df.shape[0]} rows × {df.shape[1]} columns")
 
-    # ── Metrics ────────────────────────────────────────────────────────────
     compute_and_save_metrics(df, cfg)
 
     print("\n✅ Zero-shot LLM explainability complete.")

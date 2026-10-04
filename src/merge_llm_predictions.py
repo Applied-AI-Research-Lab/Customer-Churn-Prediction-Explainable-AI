@@ -1,15 +1,3 @@
-"""
-Merge parallel Qwen and Gemma prediction CSVs into a single output file.
-
-Usage (after both GPU runs complete):
-    python src/merge_llm_predictions.py
-
-Or with custom paths:
-    python src/merge_llm_predictions.py \
-        --qwen  outputs/llm_predictions/qwen_predictions.csv \
-        --gemma outputs/llm_predictions/gemma_predictions.csv \
-        --out   outputs/llm_predictions/test_llm_predictions.csv
-"""
 from __future__ import annotations
 
 import argparse
@@ -61,7 +49,6 @@ def main() -> None:
     out_path   = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # ── Load both files ────────────────────────────────────────────────────
     if not qwen_path.exists():
         raise FileNotFoundError(f"Qwen predictions not found: {qwen_path}")
     if not gemma_path.exists():
@@ -79,11 +66,9 @@ def main() -> None:
             "Both must be run on the same test set."
         )
 
-    # ── Verify row alignment ───────────────────────────────────────────────
     if not qwen_df["y_true"].equals(gemma_df["y_true"]):
         raise ValueError("y_true columns differ — files are not from the same test set.")
 
-    # ── Merge: base columns from Qwen file + Gemma LLM columns ────────────
     merged = qwen_df.copy()
     for col in GEMMA_COLS:
         if col in gemma_df.columns:
@@ -95,7 +80,6 @@ def main() -> None:
     print(f"\nMerged file saved → {out_path}")
     print(f"Shape: {merged.shape[0]} rows × {merged.shape[1]} columns")
 
-    # ── Metrics ────────────────────────────────────────────────────────────
     rows = []
     print(f"\n{'='*60}")
     print("  FINAL METRICS — Both Models")

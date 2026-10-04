@@ -1,0 +1,3 @@
+model,n_overall,anchoring_index_overall,n_ambiguous,anchoring_index_ambiguous
+qwen,1500,0.9078682842287695,617,0.7633711507293355
+gemma,1500,0.997600319957339,617,0.9708265802269044

@@ -1,0 +1,6 @@
+chi2=12.2526
+p_chi2=0.000465
+p_fisher=0.000370
+pooled_n=344
+pooled_acc=0.4942
+pooled_p=0.871534

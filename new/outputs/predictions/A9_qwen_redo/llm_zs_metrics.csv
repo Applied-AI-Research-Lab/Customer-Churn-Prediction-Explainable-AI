@@ -1,0 +1,2 @@
+model,n_evaluated,accuracy,precision,recall,f1,roc_auc,avg_time_sec
+qwen,7501,0.9127,0.8696,0.821,0.8446,0.8855,5.12

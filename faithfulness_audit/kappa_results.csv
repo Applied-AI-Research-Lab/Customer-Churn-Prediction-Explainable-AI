@@ -1,0 +1,7 @@
+dimension,kappa,n,n_flagged_by_either
+faithful_overall,0.5418326693227092,100,
+fabricated,0.1232876712328771,100,36.0
+reversed,0.7474747474747476,100,32.0
+magnitude,0.4450610432852385,100,15.0
+causal,0.0,100,2.0
+recommendation,0.09836065573770501,100,12.0

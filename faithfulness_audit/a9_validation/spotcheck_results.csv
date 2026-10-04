@@ -1,0 +1,9 @@
+coder,model,condition,fabrication_rate,n
+coderA,qwen,A5,0.32,25
+coderA,qwen,A9,0.04,25
+coderA,gemma,A5,0.2,25
+coderA,gemma,A9,0.08,25
+coderB,qwen,A5,0.28,25
+coderB,qwen,A9,0.04,25
+coderB,gemma,A5,0.2,25
+coderB,gemma,A9,0.12,25
