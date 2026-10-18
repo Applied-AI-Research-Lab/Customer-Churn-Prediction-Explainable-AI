@@ -2,9 +2,10 @@ import os
 import numpy as np
 import pandas as pd
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PRED_CSV = os.path.join(BASE_DIR, "outputs", "llm_predictions", "test_llm_predictions.csv")
-OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "blank_sheets")
+os.makedirs(OUT_DIR, exist_ok=True)
 
 STRATA_N = {"Critical": 10, "High": 13, "Medium": 12, "Low": 15}
 SEED = 42

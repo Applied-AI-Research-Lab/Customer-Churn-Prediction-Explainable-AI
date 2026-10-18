@@ -2,11 +2,12 @@ import os
 import numpy as np
 import pandas as pd
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FULL_A5_CSV = os.path.join(BASE_DIR, "outputs", "llm_predictions", "test_llm_predictions.csv")
 A9_MERGED_CSV = os.path.join(BASE_DIR, "new", "outputs", "predictions", "A9_full_MERGED.csv")
 ORIGINAL_ROW_IDS_CSV = os.path.join(BASE_DIR, "new", "outputs", "a9_followup_row_ids.csv")
-OUT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "blank_sheets")
+os.makedirs(OUT_DIR, exist_ok=True)
 
 N = 25
 SEED = 43

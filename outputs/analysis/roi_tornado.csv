@@ -1,7 +1,7 @@
 param,bound,value,net_value
-retention_cost,low,5.0,318526.37400000007
-retention_cost,high,100.0,120451.37400000007
-acquisition_multiplier,low,2.0,236528.87400000007
-acquisition_multiplier,high,10.0,343988.87400000007
-success_rate,low,0.05,-415053.72099999996
-success_rate,high,0.6,1107082.4880000001
+retention_cost,low,5.0,819831.1140000001
+retention_cost,high,100.0,621756.1140000001
+acquisition_multiplier,low,2.0,737833.6140000001
+acquisition_multiplier,high,10.0,845293.6140000001
+success_rate,low,0.05,86251.01900000003
+success_rate,high,0.6,1608387.2280000001

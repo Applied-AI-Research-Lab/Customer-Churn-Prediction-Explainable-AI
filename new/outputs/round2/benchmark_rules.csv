@@ -1,0 +1,3 @@
+rule,wBA,wBA_lo,wBA_hi
+"Benchmark vote, 3 A1 features (>=2 of 3)",0.6413911371491547,0.6072748359380862,0.6746763017020253
+"Benchmark vote, all 20 features (>=12, val-selected)",0.6604273170776824,0.627057680381355,0.693440266910598

@@ -21,7 +21,6 @@ BASE_RETENTION_COST = 25.0
 BASE_ACQUISITION_COST = 125.0
 BASE_SUCCESS_RATE = 0.30
 
-
 def load():
     df = pd.read_csv(PRED_CSV)
     rf = pd.read_csv(os.path.join(BASE_DIR, "outputs", "predictions", "test_predictions_random_forest.csv"))
@@ -32,7 +31,6 @@ def load():
     df["gemma_pred_bin"] = (df["gemma_decision"].str.strip().str.lower() == "churn").astype(int)
     return df
 
-
 def net_value(df, pred_col, retention_cost, acquisition_cost, success_rate, rng=None):
     pred = df[pred_col]
     y = df["y_true"]
@@ -40,24 +38,23 @@ def net_value(df, pred_col, retention_cost, acquisition_cost, success_rate, rng=
 
     tp_mask = (pred == 1) & (y == 1)
     fp_mask = (pred == 1) & (y == 0)
-    fn_mask = (pred == 0) & (y == 1)
 
     n_flagged = int((tp_mask | fp_mask).sum())
     spend = retention_cost * n_flagged
 
     if rng is None:
+
         value_saved = success_rate * ltv[tp_mask].sum()
         acquisition_avoided = success_rate * int(tp_mask.sum()) * acquisition_cost
     else:
+
         tp_idx = np.where(tp_mask)[0]
         n_saved = rng.binomial(len(tp_idx), success_rate)
         saved_idx = rng.choice(tp_idx, size=n_saved, replace=False) if n_saved else np.array([], dtype=int)
         value_saved = ltv.iloc[saved_idx].sum()
         acquisition_avoided = n_saved * acquisition_cost
 
-    missed_loss = ltv[fn_mask].sum()
-    return value_saved + acquisition_avoided - spend - missed_loss
-
+    return value_saved + acquisition_avoided - spend
 
 def main() -> None:
     df = load()
@@ -65,7 +62,7 @@ def main() -> None:
                  "Qwen3.5-4B": "qwen_pred_bin", "Gemma3-4B": "gemma_pred_bin"}
 
     print("=" * 90)
-    print("  Base-case validation (must match published Table 11)")
+    print("  Base case (incremental to no intervention)")
     print("=" * 90)
     base_values = {}
     for name, col in pred_cols.items():
@@ -120,20 +117,25 @@ def main() -> None:
     print("\n" + "=" * 90)
     print("  Monte Carlo (10,000 draws): P(model A > model B), assumption uncertainty")
     print("=" * 90)
+
     rng = np.random.default_rng(42)
     n_mc = 10_000
+    y = df["y_true"].to_numpy() == 1
+    ltv = df["Lifetime_Value"].to_numpy()
+    preds = {name: df[col].to_numpy() == 1 for name, col in pred_cols.items()}
     mc_values = {name: np.empty(n_mc) for name in pred_cols}
     for i in range(n_mc):
         rc = rng.uniform(10, 50)
         mult = rng.uniform(3, 7)
         sr = rng.uniform(0.15, 0.45)
-        trial_rng = np.random.default_rng(rng.integers(0, 2**32 - 1))
-        for name, col in pred_cols.items():
-            mc_values[name][i] = net_value(df, col, rc, mult * rc, sr, rng=trial_rng)
+        saved = rng.random(len(df)) < sr
+        for name, flag in preds.items():
+            tp_saved = flag & y & saved
+            mc_values[name][i] = (ltv[tp_saved].sum() + tp_saved.sum() * mult * rc) - rc * flag.sum()
 
     mc_df = pd.DataFrame(mc_values)
     mc_df.to_csv(os.path.join(OUT_DIR, "roi_montecarlo.csv"), index=False)
-    pairs = [("Gemma3-4B", "XGBoost"), ("XGBoost", "Random Forest"), ("Gemma3-4B", "Qwen3.5-4B")]
+    pairs = [("Gemma3-4B", "XGBoost"), ("XGBoost", "Random Forest"), ("Gemma3-4B", "Qwen3.5-4B"), ("XGBoost", "Qwen3.5-4B"), ("Random Forest", "Qwen3.5-4B")]
     for a, b in pairs:
         p_a_gt_b = (mc_df[a] > mc_df[b]).mean()
         print(f"  P({a} > {b}) = {p_a_gt_b:.1%}")
@@ -144,7 +146,6 @@ def main() -> None:
     p_gemma_wins = (mc_df["Gemma3-4B"] > mc_df["XGBoost"]).mean()
     print(f"  Under assumption uncertainty: P(Gemma > XGBoost) = {p_gemma_wins:.1%}  "
           f"-> read as statistical parity, not systematic superiority.")
-
 
 if __name__ == "__main__":
     main()
