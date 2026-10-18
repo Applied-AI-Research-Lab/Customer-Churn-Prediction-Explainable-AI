@@ -2,7 +2,7 @@
 
 ## Article
 * **Journal**: Under Review
-* **Title**: Customer Churn Prediction with Small Language Models: Explainable AI for Business Intelligence
+* **Title**: Do Small Language Models Add Value to Churn Classifiers? An Ablation and Faithfulness Audit of Zero-Shot Explanations
 * **DOI**: 
 
 ## Authors
